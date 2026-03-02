@@ -1,0 +1,22 @@
+{
+  "name": "chat-gui-server",
+  "version": "1.0.0",
+  "description": "Proxy for the Chat GUI that calls the OpenClaw gateway /v1/chat/completions endpoint.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
