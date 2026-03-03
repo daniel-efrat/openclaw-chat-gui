@@ -15,15 +15,19 @@ RUN npm run build
 FROM node:20-alpine AS production
 WORKDIR /app
 
+# Copy built frontend from previous stage first
+COPY --from=frontend-build /app/dist ./dist
+
 # Copy server package files
-COPY server/package*.json ./
+COPY server/package*.json ./server/
+WORKDIR /app/server
 RUN npm ci --omit=dev
 
 # Copy server code
 COPY server/ ./
 
-# Copy built frontend from previous stage
-COPY --from=frontend-build /app/dist ./dist
+# Set working directory back to /app for proper path resolution
+WORKDIR /app/server
 
 # Expose the server port
 EXPOSE 4000
