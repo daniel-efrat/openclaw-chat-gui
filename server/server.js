@@ -23,6 +23,15 @@ const historyPath = path.join(__dirname, 'chat-history.json')
 const clientDistPath = path.resolve(__dirname, '../dist')
 const hasClientBundle = existsSync(clientDistPath)
 
+console.log('[chat-gui] Server directory:', __dirname)
+console.log('[chat-gui] Looking for dist at:', clientDistPath)
+console.log('[chat-gui] Has client bundle:', hasClientBundle)
+if (hasClientBundle) {
+  console.log('[chat-gui] Client bundle found, will serve static files')
+} else {
+  console.warn('[chat-gui] WARNING: Client bundle not found! Frontend will not be served.')
+}
+
 const readHistory = async () => {
   try {
     const raw = await fs.readFile(historyPath, 'utf-8')
@@ -134,14 +143,17 @@ app.post('/api/chat', async (req, res) => {
 })
 
 if (hasClientBundle) {
+  console.log('[chat-gui] Setting up static file serving from:', clientDistPath)
   app.use(express.static(clientDistPath))
   app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/health')) {
       return next()
     }
-
+    console.log('[chat-gui] Serving index.html for path:', req.path)
     res.sendFile(path.join(clientDistPath, 'index.html'))
   })
+} else {
+  console.warn('[chat-gui] Static file serving is DISABLED - no dist folder found')
 }
 
 app.listen(port, () => {
