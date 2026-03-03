@@ -27,14 +27,16 @@ This guide explains how to deploy the Claw Chat GUI to Coolify.
 
    Navigate to the Environment Variables section and add:
 
-   | Variable                 | Value                                                       | Required |
-   | ------------------------ | ----------------------------------------------------------- | -------- |
-   | `OPENCLAW_GATEWAY_URL`   | Your gateway URL (e.g., `http://gateway.example.com:18789`) | Yes      |
-   | `OPENCLAW_GATEWAY_TOKEN` | Your gateway bearer token                                   | Yes      |
-   | `OPENCLAW_AGENT_ID`      | Agent ID (default: `main`)                                  | No       |
-   | `OPENCLAW_MODEL`         | Model name (default: `openclaw:main`)                       | No       |
-   | `OPENCLAW_USER`          | User identifier (default: `chat-gui`)                       | No       |
-   | `PORT`                   | Port number (default: `4000`)                               | No       |
+   | Variable                 | Value                                               | Required |
+   | ------------------------ | --------------------------------------------------- | -------- |
+   | `OPENCLAW_GATEWAY_URL`   | `http://3.86.116.96:18789` (your gateway server IP) | Yes      |
+   | `OPENCLAW_GATEWAY_TOKEN` | `75ea6dfc861382674d19b2f1ed202ab02311d4ea04e81936`  | Yes      |
+   | `OPENCLAW_AGENT_ID`      | `main`                                              | No       |
+   | `OPENCLAW_MODEL`         | `openclaw:main`                                     | No       |
+   | `OPENCLAW_USER`          | `chat-gui`                                          | No       |
+   | `PORT`                   | `4000`                                              | No       |
+
+   **IMPORTANT:** Do NOT use `localhost` or `127.0.0.1` for the gateway URL when deploying in Docker/Coolify. Use the actual public IP address or hostname of your gateway server.
 
 4. **Configure Port Mapping**
    - **Application Port**: `4000` (or whatever you set in PORT env var)
@@ -118,14 +120,17 @@ The application stores chat history in `/app/chat-history.json` inside the conta
   - Missing `OPENCLAW_GATEWAY_TOKEN` environment variable
   - Invalid gateway URL
 
-### Can't Connect to Gateway
+### Can't Connect to Gateway (502 Bad Gateway Error)
 
-**Issue**: Application works but can't reach OpenClaw gateway
+**Issue**: Application works but can't reach OpenClaw gateway - shows 502 error
 
 - **Solution**:
-  - Verify `OPENCLAW_GATEWAY_URL` is accessible from the container
-  - If gateway is on localhost, you need to use the host network or proper DNS
-  - Check if gateway requires specific network configuration
+  - **DO NOT use `localhost` or `127.0.0.1`** - these refer to the container itself, not your host machine
+  - Use the actual public IP address of your gateway server (e.g., `http://3.86.116.96:18789`)
+  - Or use a hostname/domain if your gateway has one
+  - Verify the gateway port (18789) is open in your firewall/security group
+  - Test connectivity: `curl http://YOUR_GATEWAY_IP:18789/v1/models` (should return a response)
+  - Check AWS Security Groups if using EC2 - ensure port 18789 is open to your Coolify server's IP
 
 ### Port Already in Use
 
