@@ -1,11 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import './App.css'
+import { useEffect, useMemo, useRef, useState } from "react"
+import "./App.css"
 
-const HISTORY_ENDPOINT = '/api/history'
+const HISTORY_ENDPOINT = "/api/history"
+
+// UUID generator that works in all contexts (HTTP and HTTPS)
+const generateUUID = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback for non-secure contexts
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === "x" ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
 
 const buildSystemGreeting = () => ({
-  id: crypto.randomUUID(),
-  role: 'assistant',
+  id: generateUUID(),
+  role: "assistant",
   content: "Hey there! I'm Claw, ready to help. What should we tackle?",
   createdAt: new Date().toISOString(),
 })
@@ -13,8 +26,8 @@ const buildSystemGreeting = () => ({
 const createConversation = () => {
   const timestamp = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
-    title: 'New chat',
+    id: generateUUID(),
+    title: "New chat",
     createdAt: timestamp,
     updatedAt: timestamp,
     messages: [buildSystemGreeting()],
@@ -22,30 +35,37 @@ const createConversation = () => {
 }
 
 const formatPreview = (text) => {
-  if (!text) return 'No messages yet.'
-  const condensed = text.replace(/\s+/g, ' ').trim()
+  if (!text) return "No messages yet."
+  const condensed = text.replace(/\s+/g, " ").trim()
   return condensed.length > 80 ? `${condensed.slice(0, 77)}…` : condensed
 }
 
 const formatTitleFromMessage = (text) => {
-  if (!text) return 'New chat'
-  const condensed = text.replace(/\s+/g, ' ').trim()
-  return condensed.length > 32 ? `${condensed.slice(0, 29)}…` : condensed || 'New chat'
+  if (!text) return "New chat"
+  const condensed = text.replace(/\s+/g, " ").trim()
+  return condensed.length > 32
+    ? `${condensed.slice(0, 29)}…`
+    : condensed || "New chat"
 }
 
 const MessageBubble = ({ message }) => {
-  const isUser = message.role === 'user'
+  const isUser = message.role === "user"
 
   return (
-    <div className={`message ${isUser ? 'message-user' : 'message-assistant'}`}>
+    <div className={`message ${isUser ? "message-user" : "message-assistant"}`}>
       <div className="avatar" aria-hidden="true">
-        {isUser ? '🧑‍💻' : '🦞'}
+        {isUser ? "🧑‍💻" : "🦞"}
       </div>
       <div className="bubble">
         <div className="bubble-meta">
-          <span>{isUser ? 'You' : 'Claw'}</span>
+          <span>{isUser ? "You" : "Claw"}</span>
           {message.createdAt && (
-            <time>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+            <time>
+              {new Date(message.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </time>
           )}
         </div>
         <p>{message.content}</p>
@@ -56,7 +76,9 @@ const MessageBubble = ({ message }) => {
 
 const TypingIndicator = () => (
   <div className="message message-assistant typing">
-    <div className="avatar" aria-hidden="true">🦞</div>
+    <div className="avatar" aria-hidden="true">
+      🦞
+    </div>
     <div className="bubble">
       <div className="typing-dots">
         <span />
@@ -72,35 +94,40 @@ function App() {
     const initialConversation = createConversation()
     return [initialConversation]
   })
-  const [activeConversationId, setActiveConversationId] = useState(() => conversations[0]?.id)
-  const [input, setInput] = useState('')
+  const [activeConversationId, setActiveConversationId] = useState(
+    () => conversations[0]?.id,
+  )
+  const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState("")
   const [isHydrated, setIsHydrated] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
   const activeConversation =
-    conversations.find((conversation) => conversation.id === activeConversationId) ?? conversations[0]
+    conversations.find(
+      (conversation) => conversation.id === activeConversationId,
+    ) ?? conversations[0]
 
   const messages = activeConversation?.messages ?? []
-  const canSend = input.trim().length > 0 && !isTyping && Boolean(activeConversation)
+  const canSend =
+    input.trim().length > 0 && !isTyping && Boolean(activeConversation)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isTyping])
 
   useEffect(() => {
     const handleShortcut = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault()
         inputRef.current?.focus()
       }
     }
 
-    window.addEventListener('keydown', handleShortcut)
-    return () => window.removeEventListener('keydown', handleShortcut)
+    window.addEventListener("keydown", handleShortcut)
+    return () => window.removeEventListener("keydown", handleShortcut)
   }, [])
 
   useEffect(() => {
@@ -113,12 +140,16 @@ function App() {
           throw new Error(`Failed to load history: ${response.status}`)
         }
         const data = await response.json()
-        if (!cancelled && Array.isArray(data.conversations) && data.conversations.length) {
+        if (
+          !cancelled &&
+          Array.isArray(data.conversations) &&
+          data.conversations.length
+        ) {
           setConversations(data.conversations)
           setActiveConversationId(data.conversations[0].id)
         }
       } catch (err) {
-        console.warn('[chat-gui] Unable to hydrate history', err)
+        console.warn("[chat-gui] Unable to hydrate history", err)
       } finally {
         if (!cancelled) {
           setIsHydrated(true)
@@ -133,15 +164,15 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 960px)')
+    const mediaQuery = window.matchMedia("(min-width: 960px)")
     const handleChange = () => {
       if (mediaQuery.matches) {
         setIsSidebarOpen(false)
       }
     }
 
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+    mediaQuery.addEventListener("change", handleChange)
+    return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
 
   useEffect(() => {
@@ -152,14 +183,14 @@ function App() {
     const persistHistory = async () => {
       try {
         await fetch(HISTORY_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ conversations }),
           signal: controller.signal,
         })
       } catch (err) {
-        if (err.name === 'AbortError') return
-        console.warn('[chat-gui] Unable to persist history', err)
+        if (err.name === "AbortError") return
+        console.warn("[chat-gui] Unable to persist history", err)
       }
     }
 
@@ -169,22 +200,25 @@ function App() {
 
   const chatPayload = useMemo(
     () => messages.map(({ role, content }) => ({ role, content })),
-    [messages]
+    [messages],
   )
 
   const historyItems = useMemo(
     () =>
       [...conversations].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       ),
-    [conversations]
+    [conversations],
   )
 
   const updateConversation = (conversationId, updater) => {
     setConversations((prev) =>
       prev.map((conversation) =>
-        conversation.id === conversationId ? updater(conversation) : conversation
-      )
+        conversation.id === conversationId
+          ? updater(conversation)
+          : conversation,
+      ),
     )
   }
 
@@ -195,8 +229,8 @@ function App() {
     const trimmed = input.trim()
     const now = new Date().toISOString()
     const userMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
+      id: generateUUID(),
+      role: "user",
       content: trimmed,
       createdAt: now,
     }
@@ -208,34 +242,36 @@ function App() {
       messages: [...conversation.messages, userMessage],
       updatedAt: userMessage.createdAt,
       title:
-        conversation.title === 'New chat' ? formatTitleFromMessage(trimmed) : conversation.title,
+        conversation.title === "New chat"
+          ? formatTitleFromMessage(trimmed)
+          : conversation.title,
     }))
 
-    setInput('')
-    setError('')
+    setInput("")
+    setError("")
     setIsTyping(true)
 
-    const payload = [...chatPayload, { role: 'user', content: trimmed }]
+    const payload = [...chatPayload, { role: "user", content: trimmed }]
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ messages: payload }),
       })
 
       if (!response.ok) {
-        throw new Error('Request failed. Check the server logs for details.')
+        throw new Error("Request failed. Check the server logs for details.")
       }
 
       const data = await response.json()
       const reply = data.reply ?? data.message
       const assistantMessage = {
-        id: crypto.randomUUID(),
-        role: reply?.role ?? 'assistant',
-        content: reply?.content ?? 'Something went wrong, but I am still here.',
+        id: generateUUID(),
+        role: reply?.role ?? "assistant",
+        content: reply?.content ?? "Something went wrong, but I am still here.",
         createdAt: new Date().toISOString(),
       }
 
@@ -246,7 +282,7 @@ function App() {
       }))
     } catch (err) {
       console.error(err)
-      setError(err.message ?? 'Failed to reach the chat server.')
+      setError(err.message ?? "Failed to reach the chat server.")
     } finally {
       setIsTyping(false)
     }
@@ -264,8 +300,8 @@ function App() {
     const nextConversation = createConversation()
     setConversations((prev) => [nextConversation, ...prev])
     setActiveConversationId(nextConversation.id)
-    setInput('')
-    setError('')
+    setInput("")
+    setError("")
     handleCloseSidebar()
   }
 
@@ -275,14 +311,14 @@ function App() {
       return
     }
     setActiveConversationId(conversationId)
-    setError('')
-    setInput('')
+    setError("")
+    setInput("")
     handleCloseSidebar()
   }
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
         <div className="brand">
           <span>🦞</span>
           <div>
@@ -310,22 +346,26 @@ function App() {
           </div>
           <ul className="history-list">
             {historyItems.map((conversation) => {
-              const latestMessage = conversation.messages[conversation.messages.length - 1]
+              const latestMessage =
+                conversation.messages[conversation.messages.length - 1]
               const isActive = conversation.id === activeConversation?.id
               return (
                 <li key={conversation.id}>
                   <button
                     type="button"
-                    className={`history-item ${isActive ? 'active' : ''}`}
+                    className={`history-item ${isActive ? "active" : ""}`}
                     onClick={() => handleSelectConversation(conversation.id)}
                   >
                     <div className="history-meta">
                       <span>{conversation.title}</span>
                       <time>
-                        {new Date(conversation.updatedAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {new Date(conversation.updatedAt).toLocaleTimeString(
+                          [],
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
                       </time>
                     </div>
                     <p>{formatPreview(latestMessage?.content)}</p>
@@ -337,7 +377,10 @@ function App() {
         </div>
 
         <div className="panel">
-          <p>Prototype UI inspired by ChatGPT. Messages are proxied via the local server.</p>
+          <p>
+            Prototype UI inspired by ChatGPT. Messages are proxied via the local
+            server.
+          </p>
           <ul>
             <li>⌘/Ctrl + K — focus composer</li>
             <li>Enter — send</li>
@@ -347,7 +390,7 @@ function App() {
       </aside>
 
       <div
-        className={`sidebar-overlay ${isSidebarOpen ? 'visible' : ''}`}
+        className={`sidebar-overlay ${isSidebarOpen ? "visible" : ""}`}
         onClick={handleCloseSidebar}
       />
 
@@ -365,13 +408,13 @@ function App() {
               <span />
             </button>
             <div>
-              <h1>{activeConversation?.title ?? 'Conversation'}</h1>
+              <h1>{activeConversation?.title ?? "Conversation"}</h1>
               <p>Connected to local proxy · Powered by OpenAI</p>
             </div>
           </div>
           <div className="header-actions">
-            <span className={isTyping ? 'status-dot live' : 'status-dot'} />
-            {isTyping ? 'Claw is typing…' : 'Ready'}
+            <span className={isTyping ? "status-dot live" : "status-dot"} />
+            {isTyping ? "Claw is typing…" : "Ready"}
           </div>
         </header>
 
@@ -398,7 +441,8 @@ function App() {
             </button>
           </form>
           <p className="disclaimer">
-            Responses are generated via OpenAI. Do not share secrets. This interface is not ChatGPT, but it feels close.
+            Responses are generated via OpenAI. Do not share secrets. This
+            interface is not ChatGPT, but it feels close.
           </p>
         </footer>
       </main>
