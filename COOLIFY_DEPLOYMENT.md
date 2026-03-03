@@ -24,17 +24,17 @@ This guide explains how to deploy the Claw Chat GUI to Coolify.
    - **Dockerfile Location**: `Dockerfile` (in root)
 
 3. **Set Environment Variables**
-   
+
    Navigate to the Environment Variables section and add:
-   
-   | Variable | Value | Required |
-   |----------|-------|----------|
-   | `OPENCLAW_GATEWAY_URL` | Your gateway URL (e.g., `http://gateway.example.com:18789`) | Yes |
-   | `OPENCLAW_GATEWAY_TOKEN` | Your gateway bearer token | Yes |
-   | `OPENCLAW_AGENT_ID` | Agent ID (default: `main`) | No |
-   | `OPENCLAW_MODEL` | Model name (default: `openclaw:main`) | No |
-   | `OPENCLAW_USER` | User identifier (default: `chat-gui`) | No |
-   | `PORT` | Port number (default: `4000`) | No |
+
+   | Variable                 | Value                                                       | Required |
+   | ------------------------ | ----------------------------------------------------------- | -------- |
+   | `OPENCLAW_GATEWAY_URL`   | Your gateway URL (e.g., `http://gateway.example.com:18789`) | Yes      |
+   | `OPENCLAW_GATEWAY_TOKEN` | Your gateway bearer token                                   | Yes      |
+   | `OPENCLAW_AGENT_ID`      | Agent ID (default: `main`)                                  | No       |
+   | `OPENCLAW_MODEL`         | Model name (default: `openclaw:main`)                       | No       |
+   | `OPENCLAW_USER`          | User identifier (default: `chat-gui`)                       | No       |
+   | `PORT`                   | Port number (default: `4000`)                               | No       |
 
 4. **Configure Port Mapping**
    - **Application Port**: `4000` (or whatever you set in PORT env var)
@@ -65,6 +65,7 @@ If your Coolify instance supports Docker Compose:
 ### Accessing Your Application
 
 After deployment, Coolify will provide you with a URL like:
+
 - `http://your-app.coolify.example.com` (with HTTP)
 - `https://your-app.coolify.example.com` (with HTTPS enabled)
 
@@ -77,6 +78,7 @@ curl https://your-app.coolify.example.com/health
 ```
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -101,14 +103,17 @@ The application stores chat history in `/app/chat-history.json` inside the conta
 ### Build Fails
 
 **Issue**: Build fails during npm install
+
 - **Solution**: Check Coolify build logs. Usually caused by network issues. Retry the deployment.
 
 **Issue**: Frontend build fails
+
 - **Solution**: Ensure sufficient memory is allocated (at least 512MB for Node.js builds)
 
 ### Application Doesn't Start
 
 **Issue**: Container starts but crashes immediately
+
 - **Solution**: Check runtime logs in Coolify. Common causes:
   - Missing `OPENCLAW_GATEWAY_TOKEN` environment variable
   - Invalid gateway URL
@@ -116,7 +121,8 @@ The application stores chat history in `/app/chat-history.json` inside the conta
 ### Can't Connect to Gateway
 
 **Issue**: Application works but can't reach OpenClaw gateway
-- **Solution**: 
+
+- **Solution**:
   - Verify `OPENCLAW_GATEWAY_URL` is accessible from the container
   - If gateway is on localhost, you need to use the host network or proper DNS
   - Check if gateway requires specific network configuration
@@ -124,7 +130,8 @@ The application stores chat history in `/app/chat-history.json` inside the conta
 ### Port Already in Use
 
 **Issue**: Coolify shows port conflict
-- **Solution**: 
+
+- **Solution**:
   - Change the public port in Coolify settings
   - Or change `PORT` environment variable to a different value
 
@@ -140,6 +147,7 @@ Coolify can automatically redeploy on git push:
 ## Manual Redeploy
 
 To manually redeploy:
+
 1. Go to your application in Coolify
 2. Click "Redeploy" or "Restart"
 3. Choose "Force Rebuild" if you want to rebuild from scratch
@@ -149,12 +157,14 @@ To manually redeploy:
 ### Gateway on Same Server
 
 If your OpenClaw gateway runs on the same server as Coolify:
+
 - Use `http://host.docker.internal:18789` (on Docker Desktop)
 - Or use the server's actual IP/hostname instead of `localhost`
 
 ### Gateway Behind VPN
 
 If your gateway is only accessible via VPN:
+
 - Ensure Coolify server has VPN access
 - Or deploy gateway and chat-gui on the same private network
 
@@ -176,6 +186,7 @@ If your gateway is only accessible via VPN:
 ## Support
 
 If you encounter issues:
+
 1. Check Coolify application logs
 2. Check the health endpoint: `/health`
 3. Verify all environment variables are set correctly
@@ -192,11 +203,13 @@ If you encounter issues:
 **Static Files**: Served from `/dist` by Express
 
 **Minimum Resources**:
+
 - CPU: 0.5 cores
 - RAM: 512 MB
 - Disk: 1 GB
 
 **Recommended Resources**:
+
 - CPU: 1 core
 - RAM: 1 GB
 - Disk: 2 GB
